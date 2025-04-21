@@ -1,0 +1,15 @@
+{
+  "object": "user",
+  "id": "64fec7c5-d8ed-4b4c-bbef-54bcaf51863e",
+  "name": "RPG Tracker",
+  "avatar_url": null,
+  "type": "bot",
+  "bot": {
+    "owner": {
+      "type": "workspace",
+      "workspace": true
+    },
+    "workspace_name": "Petr Čermák's Notion"
+  },
+  "request_id": "53e33ff7-13ca-4d3c-a2a4-28f8953ccade"
+}

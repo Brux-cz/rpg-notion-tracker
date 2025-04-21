@@ -1,0 +1,3 @@
+"""
+Testy pro API modul.
+"""

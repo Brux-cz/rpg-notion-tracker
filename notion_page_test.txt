@@ -1,0 +1,5 @@
+=== Test získání stránky z Notion API ===
+
+Získávání informací o stránce...
+Status kód: 200
+Odpověď: {"object":"page","id":"1dcbaf6c-b5c1-80b8-aeb5-c8cee78379b1","created_time":"2025-04-21T20:00:00.000Z","last_edited_time":"2025-04-21T20:47:00.000Z","created_by":{"object":"user","id":"f2b309d3-be86-415f-94f9-db04026cf0a9"},"last_edited_by":{"object":"user","id":"64fec7c5-d8ed-4b4c-bbef-54bcaf51863e"},"cover":null,"icon":null,"parent":{"type":"workspace","workspace":true},"archived":false,"in_trash":false,"properties":{"title":{"id":"title","type":"title","title":[{"type":"text","text":{"content":"Tracker","link":null},"annotations":{"bold":false,"italic":false,"strikethrough":false,"underline":false,"code":false,"color":"default"},"plain_text":"Tracker","href":null}]}},"url":"https://www.notion.so/Tracker-1dcbaf6cb5c180b8aeb5c8cee78379b1","public_url":null,"request_id":"9df7d5ff-a5ec-441f-b38f-f14b4dc330f0"}

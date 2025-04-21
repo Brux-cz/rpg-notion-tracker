@@ -1,0 +1,15 @@
+=== Test připojení k Notion API v praxi ===
+
+1. Získávání informací o stránce...
+Status kód: 200
+Stránka byla úspěšně nalezena!
+Název stránky: Tracker
+ID stránky: 1dcbaf6c-b5c1-80b8-aeb5-c8cee78379b1
+URL stránky: https://www.notion.so/Tracker-1dcbaf6cb5c180b8aeb5c8cee78379b1
+
+2. Vytváření testovací stránky...
+Status kód: 200
+Stránka byla úspěšně vytvořena!
+ID nové stránky: 1dcbaf6c-b5c1-813c-b204-cbde38e6ea87
+URL nové stránky: https://www.notion.so/Testovac-str-nka-z-Python-skriptu-1dcbaf6cb5c1813cb204cbde38e6ea87
+

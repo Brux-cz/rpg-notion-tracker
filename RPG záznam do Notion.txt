@@ -1,0 +1,380 @@
+﻿Technické požadavky na systém pro automatické zaznamenávání obsahu solo RPG her s AI do Notion
+1. Úvod
+Tato zpráva podrobně popisuje technické požadavky na komplexní systém, jehož cílem je automaticky zaznamenávat a organizovat obsah ze solo RPG her s umělou inteligencí (AI) do platformy Notion. Uživatel požaduje systém, který bude fungovat jako dynamický deník dobrodružství a zároveň jako databáze herního světa, která se bude vytvářet a aktualizovat v reálném čase během hry. Hlavním přínosem tohoto systému bude eliminace potřeby manuálního zapisování a organizování informací o herním světě, postavách, lokacích a událostech, což uživateli umožní plně se soustředit na samotné hraní a zároveň mít k dispozici dobře strukturovanou a aktuální databázi všech aspektů herního světa. Zpráva se zaměřuje na poskytnutí podrobných technických specifikací, které budou sloužit jako plán pro vývojářský tým při implementaci tohoto komplexního řešení, s využitím současných poznatků z oblasti zpracování přirozeného jazyka, reprezentace znalostí a interakce člověka s počítačem.
+2. Podrobné funkční požadavky
+Tato sekce rozvádí deset klíčových funkcí a požadavků, které uživatel definoval, a to z technického hlediska s ohledem na jejich implementaci.
+* 2.1. Automatické rozpoznávání a extrakce entit
+   * Systém musí být schopen automaticky identifikovat a extrahovat klíčové entity z textu hry, generovaného AI. Mezi tyto entity patří postavy (NPC), lokace, předměty, příšery a události. Pro tento účel je nezbytné implementovat techniky rozpoznávání pojmenovaných entit (Named Entity Recognition - NER).1 Počáteční identifikace entit může využívat pravidlové systémy založené na seznamech klíčových slov (gazetteers) a regulárních výrazech 1, zejména pro běžné herní termíny. Pro složitější nebo kontextově závislé entity je doporučeno integrovat pokročilejší modely strojového učení, včetně hlubokého učení.1
+      * Poznatek: Pravidlové systémy mohou efektivně identifikovat známé herní prvky, zatímco modely strojového učení nabízejí flexibilitu pro rozpoznávání nových a kontextově závislých entit.
+         * Odůvodnění: Snippet 1 představuje pravidlové NER pomocí gazetteerů a regulárních výrazů v knihovně Spark NLP, což naznačuje jejich užitečnost pro předdefinované herní elementy. Kombinace této metody s adaptabilitou modelů hlubokého učení, zmíněných ve stejném snippetu a v 2, představuje robustní přístup.
+   * Vzhledem k fantasy RPG prostředí bude zásadní řešit výzvu rozpoznávání doménově specifických entit.2 Standardní NER modely trénované na obecných datech nemusí přesně identifikovat specifická fantasy jména nebo typy příšer. Proto se doporučuje jemné doladění (fine-tuning) předtrénovaných NER modelů (například založených na architektuře Transformers 1) na korpusu textů z RPG her nebo podobných fantasy literárních děl.
+      * Poznatek: Běžné NER modely nemusí rozpoznat specifická fantasy jména nebo typy stvoření. Jemné doladění na datech specifických pro danou doménu je pro přesnost klíčové.
+         * Odůvodnění: Snippety 2 a 5 explicitně diskutují o výzvách NER ve fantasy doméně, zejména pro hry jako D&D, a demonstrují efektivitu jemného doladění modelů jako Trankit pro tento účel.
+   * Systém musí být schopen extrahovat relevantní atributy a vlastnosti pro každý typ entity. To může vyžadovat techniky nad rámec základního NER, jako je extrakce vztahů nebo párování vzorů k identifikaci popisných frází spojených s entitami.6 Například pro postavy (NPC) by se měly extrahovat atributy jako fyzický popis, charakterové rysy a historie. U příšer by se měly extrahovat jejich schopnosti a slabiny.
+      * Poznatek: Identifikace atributů vyžaduje pochopení kontextu obklopujícího entity, nejen jejich jmen.
+         * Odůvodnění: Snippety 6 a 9 zdůrazňují úkol extrakce atributů spojených s entitami, často vyžadující techniky jako syntaktická analýza závislostí (dependency parsing) k nalezení adjektiv nebo souvisejících jmenných frází, které entitu popisují.
+   * Dále je nutné implementovat metody pro rozpoznávání vztahů mezi entitami, jako například že NPC žije v určité lokaci nebo že určitý quest zadala konkrétní NPC. To může zahrnovat techniky extrakce vztahů 7, které identifikují sémantické spojení mezi extrahovanými entitami.
+      * Poznatek: Pochopení vztahů je klíčové pro budování komplexního grafu znalostí herního světa.
+         * Odůvodnění: Snippety 7 a 13 zdůrazňují extrakci vztahů jako zásadní úkol NLP pro identifikaci spojení mezi entitami, což systému umožní pochopit strukturu herního světa.
+* 2.2. Dynamická aktualizace záznamů
+   * Systém musí sledovat změny stavu entit v průběhu času (např. NPC ztratí končetinu, změní povolání, zemře, quest je dokončen).
+   * Je nutné implementovat techniky pro detekci změn stavu entit z textu hry. To může zahrnovat monitorování zmínek o existujících entitách a identifikaci sloves nebo frází, které indikují změnu jejich atributů nebo stavu.14
+      * Poznatek: Systém musí průběžně analyzovat text a hledat aktualizace o dříve identifikovaných entitách.
+         * Odůvodnění: Snippety 14 a 18 diskutují o výzvách a přístupech ke sledování entit v jazykových modelech, přičemž zdůrazňují potřebu porozumět tomu, jak události popsané v textu mění stavy entit.
+   * Systém musí automaticky aktualizovat existující záznamy v Notion s novými informacemi extrahovanými z textu hry pomocí Notion API.19 To bude vyžadovat mapování extrahovaných informací na odpovídající vlastnosti v databázích Notion.
+   * Systém musí zachovávat historii změn pro každou entitu, aby bylo možné sledovat její vývoj v čase. To lze implementovat přidáním nových záznamů do vyhrazené vlastnosti "Historie změn" (pravděpodobně relace k jiné databázi nebo pole s formátovaným textem se strukturovanými informacemi) při každé aktualizaci, čímž se efektivně verzují atributy entity v průběhu času.22
+      * Poznatek: Vyhrazený protokol historie pro každou entitu umožní uživateli sledovat vývoj herního světa.
+         * Odůvodnění: Uživatel explicitně požaduje sledování historie změn. Snippety 22 a 28 diskutují různé strategie verzování databází, které mohou informovat o nejlepším způsobu ukládání historie změn entit v Notion.
+* 2.3. Strukturovaná organizace dat v Notion
+   * Systém musí vytvořit a spravovat osm specifikovaných databází v Notion pomocí Notion API.29 To zahrnuje použití API koncových bodů pro vytváření databází a definování jejich schématu (vlastností).
+   * Pro každou databázi je nutné specifikovat vlastnosti a datové typy na základě podrobných specifikací uživatele, přičemž je třeba zajistit použití vhodných typů vlastností Notion (např. "Název", "Text", "Číslo", "Výběr", "Více výběrů", "Datum", "Relace").
+      * Klíčová tabulka 1: Navrhované schéma databáze Notion: Tato tabulka uvádí každou z osmi databází, jejich vlastnosti (jak je specifikoval uživatel), odpovídající navrhované typy vlastností Notion a stručný popis každé vlastnosti.
+         * Odůvodnění: Tato tabulka přímo odpovídá podrobným specifikacím uživatele pro každou databázi a poskytuje jasné mapování na možnosti Notion. Tento strukturovaný formát je pro vývojáře zásadní pro přesné vytváření databází prostřednictvím Notion API.
+   * Je třeba vysvětlit, jak spravovat vztahy mezi databázemi pomocí vlastností relací Notion.33 Například databáze "Lokace" bude mít relaci k databázi "NPC" pro vlastnost "Obyvatelé", a databáze "Questy" bude mít relace k "NPC" pro "Zadavatel" a "Související NPC" a k "Lokace" pro "Související lokace".
+      * Poznatek: Relační databázové schopnosti Notion jsou klíčové pro propojení různých aspektů herního světa.
+         * Odůvodnění: Uživatel explicitně požaduje propojení mezi entitami. Snippet 33 popisuje vlastnosti relací Notion a jak je lze použít k propojení různých databází, což je základem propojené povahy požadovaného systému.
+* 2.4. Kategorizace a tagování
+   * Je nutné diskutovat o technikách pro automatické přiřazování tagů k entitám pro snadné filtrování. To může zahrnovat extrakci klíčových slov 34 následovanou mapováním těchto klíčových slov na předdefinované tagy, nebo použití modelů textové klasifikace 38 trénovaných na označených datech k predikci relevantních tagů.
+      * Poznatek: Automatické tagování umožní uživateli snadno filtrovat a vyhledávat data herního světa.
+         * Odůvodnění: Uživatel požaduje automatické tagování. Snippety 34 a 35 diskutují metody extrakce klíčových slov, zatímco 38 a 45 představují textovou klasifikaci, obě techniky lze použít k automatickému přiřazování relevantních tagů k entitám.
+   * Je třeba vysvětlit implementaci hierarchické kategorizace (např. kontinent > region > město > konkrétní místo). To může zahrnovat udržování samostatné databáze "Hierarchie lokací" v Notion a použití vlastností relací k propojení lokací na různých úrovních hierarchie, nebo zakódování hierarchie přímo v databázi "Lokace" pomocí vlastností jako "Nadřazená lokace".46
+      * Poznatek: Hierarchická struktura umožní lépe organizované procházení a filtrování lokací.
+         * Odůvodnění: Uživatel požaduje hierarchickou kategorizaci. Snippety 46 a 50 vysvětlují hierarchickou textovou klasifikaci, kterou lze adaptovat pro kategorizaci lokací na základě jejich hierarchických vztahů.
+   * Je třeba řešit tagování podle typu interakce, emocionálního tónu a důležitosti. Typ interakce lze odvodit z kontextu textu hry. Emocionální tón lze určit pomocí technik analýzy sentimentu.56 Důležitost může být heuristika založená na četnosti zmínek nebo kontextu v rámci klíčových dějových bodů.
+      * Poznatek: Tyto tagy poskytnou další kontext a umožní sofistikovanější analýzu herního příběhu.
+         * Odůvodnění: Uživatel požaduje tyto specifické typy tagů. Snippety 56 a 60 představují analýzu sentimentu, kterou lze použít pro tagování na základě emocionálního tónu. Typ interakce a důležitost mohou vyžadovat vlastní pravidlové nebo strojové učení přístupy.
+* 2.5. Propojení entit
+   * Je nutné popsat vytvoření obousměrných odkazů mezi souvisejícími entitami v Notion pomocí vlastností relací. Například záznam o NPC může mít relaci k záznamu o lokaci, kde se aktuálně nachází, a záznam o lokaci bude mít relaci zpět k záznamům NPC, které ji obývají.33
+   * Je třeba vysvětlit proces automatického propojování nových entit s existujícími. Když je v textu hry identifikována nová entita, systém by měl prohledat databáze Notion a hledat potenciální shodu na základě jména a dalších extrahovaných atributů. Zde lze využít techniky propojování entit 66, případně s využitím fuzzy matching nebo sémantické podobnosti pro řešení odchylek v pojmenování.
+      * Poznatek: Automatické propojování entit zajistí konzistenci dat a sníží redundanci.
+         * Odůvodnění: Uživatel požaduje automatické propojování. Snippety 66 a 70 vysvětlují propojování entit jako proces mapování zmínek v textu na unikátní identifikátory v znalostní bázi, což odpovídá propojování nových entit s existujícími záznamy Notion.
+   * Je třeba diskutovat o potenciálních metodách vizualizace vztahů mezi entitami. Lze využít vestavěné zobrazení "Graf" pro databáze s relacemi v Notion, pokud splňuje požadavky na složitost. Alternativně lze zvážit integraci s externími nástroji pro vizualizaci grafů.
+* 2.6. Chronologický deník a časová osa
+   * Je nutné vysvětlit automatické generování shrnutí každé herní session. To může zahrnovat použití abstraktivních nebo extraktivních technik shrnování textu 76 na surový text hry z každé session.
+   * Je třeba popsat vytvoření interaktivní časové osy významných událostí. To bude vyžadovat identifikaci událostí v textu hry (pomocí technik detekce událostí) a extrahování jejich časových značek (pokud jsou zmíněny). Tyto události by pak mohly být uloženy v databázi "Události" v Notion a vizualizovány pomocí nástroje třetí strany pro generování časových os nebo webové knihovny.86
+      * Poznatek: Vizuální časová osa poskytne jasný přehled o průběhu hry.
+   * Je třeba vysvětlit, jak propojit události na časové ose s relevantními entitami v databázích Notion. To by zahrnovalo vytvoření vlastností relací v databázi "Události" propojujících s ostatními relevantními databázemi (NPC, Lokace, Předměty atd.).
+* 2.7. Systém questů a úkolů
+   * Je nutné diskutovat o metodách pro sledování stavu aktivních, dokončených a selhaných questů. To by zahrnovalo aktualizaci vlastnosti "Stav" záznamů v databázi "Questy" na základě informací extrahovaných z textu hry.103
+   * Je třeba vysvětlit, jak propojit questy s relevantními NPC (pomocí vlastností "Zadavatel" a "Související NPC"), lokacemi (pomocí vlastnosti "Související lokace") a odměnami (uloženými ve vlastnosti "Odměny") v databázi "Questy" v Notion.122
+   * Je nutné popsat automatickou aktualizaci stavu questů na základě herních akcí detekovaných v příběhu. To by vyžadovalo identifikaci zmínek o dokončení nebo selhání questů v textu a aktualizaci odpovídajícího záznamu Notion.
+* 2.8. Reputační systém a vztahy
+   * Je nutné diskutovat o technikách pro sledování vztahu hráče s různými frakcemi a NPC na základě textových interakcí. To by mohlo zahrnovat použití analýzy sentimentu 56 textu hry týkajícího se specifických frakcí nebo NPC pro úpravu číselného skóre reputace uloženého v databázích "Frakce" a "NPC".131
+   * Je třeba vysvětlit automatickou aktualizaci reputačních skóre na základě herních akcí. Například pozitivní interakce by mohly zvyšovat reputaci, zatímco negativní by ji snižovaly.
+   * Je nutné popsat metody pro vizualizaci vztahů mezi frakcemi. To by mohlo zahrnovat použití síťového grafu, kde frakce jsou uzly a vztahy (např. spojenectví, nepřátelství) jsou hrany, přičemž síla vztahu by mohla být indikována váhou nebo barvou hrany.
+* 2.9. Integrace s Notion API
+   * Je nutné podrobně popsat bezpečné ukládání a správu API klíčů Notion, potenciálně pomocí proměnných prostředí nebo vyhrazeného systému pro správu tajemství.30
+   * Je třeba vysvětlit implementaci efektivních operací CRUD (Create, Read, Update, Delete) s databázemi Notion pomocí API koncových bodů pro vytváření databází, dotazování na stránky a aktualizaci vlastností stránek.19
+   * Je nutné diskutovat o strategiích pro optimalizaci volání API s cílem minimalizovat riziko dosažení limitů rychlosti.30 To může zahrnovat dávkování operací, implementaci zpoždění mezi voláními a zpracování chyb HTTP 429 (Příliš mnoho požadavků) s exponenciálním zpožděním.
+* 2.10. Uživatelské rozhraní
+   * Je nutné popsat požadavky na intuitivní chat rozhraní pro interakci s AI, potenciálně zobrazující kontext a umožňující uživateli zkontrolovat a potvrdit extrahované informace.
+   * Je třeba vysvětlit potřebu manuálních úprav a oprav automaticky vytvořených záznamů v Notion přímo prostřednictvím rozhraní systému nebo poskytnutím snadných odkazů na stránky Notion.
+   * Je nutné podrobně popsat návrh přehledových dashboardů v uživatelském rozhraní systému, poskytujících souhrny a klíčové informace z databází Notion, jako jsou aktivní questy, nedávné záznamy v deníku a stav reputace frakcí.
+3. Navrhované schéma databáze Notion
+* Představuje se podrobné schéma pro každou z osmi databází Notion v tabulkovém formátu, specifikující název vlastnosti, typ (kompatibilní s typy Notion API) a stručný popis pro každé pole. Toto schéma vychází ze specifikací uživatele a bude sloužit jako plán pro vytvoření databází v Notion.
+   * 3.1. Deník dobrodružství
+      * | Název vlastnosti | Typ Notion | Popis |
+      * | :----------------- | :--------- | :--------------------------------------------------------------------- |
+      * | Datum a čas | Datum | Datum a čas herní session. |
+      * | Název epizody | Název | Automaticky generovaný název epizody. |
+      * | Shrnutí příběhu | Text | Automaticky generované shrnutí příběhu. |
+      * | Klíčové události | Relace | Odkazy na významné události v databázi "Události". |
+      * | Zúčastněné postavy | Relace | Odkazy na NPC v databázi "NPC". |
+      * | Navštívené lokace | Relace | Odkazy na lokace v databázi "Lokace". |
+   * 3.2. NPC (Postavy)
+      * | Název vlastnosti | Typ Notion | Popis |
+      * | :----------------- | :--------- | :--------------------------------------------------------------------- |
+      * | Jméno | Název | Jméno NPC. |
+      * | Popis | Text | Fyzický, charakterový popis, historie. |
+      * | Stav | Výběr | Aktuální stav (živý/mrtvý/zraněný). |
+      * | Povolání/role | Text | Povolání nebo role NPC. |
+      * | Lokace | Relace | Poslední známá lokace (odkaz na "Lokace"). |
+      * | Vztahy | Relace | Vztahy k hráči a jiným NPC (odkazy na "NPC"). |
+      * | Významné předměty | Relace | Předměty vlastněné NPC (odkazy na "Předměty"). |
+      * | Historie změn | Text | Chronologický záznam významných událostí. |
+      * | Tagy | Více výběrů | Tagy pro kategorizaci. |
+   * 3.3. Lokace
+      * | Název vlastnosti | Typ Notion | Popis |
+      * | :----------------- | :--------- | :--------------------------------------------------------------------- |
+      * | Název | Název | Název lokace. |
+      * | Typ | Výběr | Typ lokace (město, dungeon, les atd.). |
+      * | Hierarchie | Text | Hierarchická kategorizace (kontinent > region > město). |
+      * | Popis prostředí | Text | Popis prostředí lokace. |
+      * | Obyvatelé | Relace | Odkazy na NPC v databázi "NPC". |
+      * | Významné objekty | Relace | Odkazy na předměty v databázi "Předměty". |
+      * | Události | Relace | Události, které se zde odehrály (odkazy na "Události"). |
+      * | Stav | Výběr | Aktuální stav lokace (prosperující, v úpadku atd.). |
+      * | Tagy | Více výběrů | Tagy pro kategorizaci. |
+   * 3.4. Příšery
+      * | Název vlastnosti | Typ Notion | Popis |
+      * | :----------------- | :--------- | :--------------------------------------------------------------------- |
+      * | Název/typ | Název | Název nebo typ příšery. |
+      * | Popis a schopnosti | Text | Popis a schopnosti příšery. |
+      * | Místo výskytu | Relace | Odkazy na lokace v databázi "Lokace". |
+      * | Stav | Výběr | Aktuální stav příšery (živá/mrtvá/zraněná). |
+      * | Průběh soubojů | Text | Historie interakcí v soubojích. |
+      * | Slabiny a silné stránky | Text | Slabiny a silné stránky příšery. |
+      * | Kořist | Relace | Odkazy na předměty v databázi "Předměty". |
+      * | Tagy | Více výběrů | Tagy pro kategorizaci. |
+   * 3.5. Předměty
+      * | Název vlastnosti | Typ Notion | Popis |
+      * | :----------------- | :--------- | :--------------------------------------------------------------------- |
+      * | Název | Název | Název předmětu. |
+      * | Typ | Výběr | Typ předmětu (zbraň, brnění, artefakt atd.). |
+      * | Popis a vlastnosti | Text | Popis a vlastnosti předmětu. |
+      * | Místo nalezení | Relace | Odkaz na lokaci v databázi "Lokace". |
+      * | Současný vlastník | Relace | Odkaz na NPC nebo hráče v databázi "NPC". |
+      * | Historie vlastnictví | Text | Historie vlastnictví předmětu. |
+      * | Speciální schopnosti | Text | Speciální schopnosti předmětu. |
+      * | Tagy | Více výběrů | Tagy pro kategorizaci. |
+   * 3.6. Questy
+      * | Název vlastnosti | Typ Notion | Popis |
+      * | :----------------- | :--------- | :--------------------------------------------------------------------- |
+      * | Název | Název | Název questu. |
+      * | Popis a cíle | Text | Popis a cíle questu. |
+      * | Zadavatel | Relace | Odkaz na NPC v databázi "NPC". |
+      * | Stav | Výběr | Aktuální stav questu (aktivní, dokončený, selhaný). |
+      * | Odměny | Text | Odměny za dokončení questu. |
+      * | Související lokace | Relace | Odkazy na lokace v databázi "Lokace". |
+      * | Související NPC | Relace | Odkazy na NPC v databázi "NPC". |
+      * | Časová linie | Text | Časová linie questu (kdy byl zadán, dokončen atd.). |
+      * | Tagy | Více výběrů | Tagy pro kategorizaci. |
+   * 3.7. Frakce
+      * | Název vlastnosti | Typ Notion | Popis |
+      * | :----------------- | :--------- | :--------------------------------------------------------------------- |
+      * | Název | Název | Název frakce. |
+      * | Popis a cíle | Text | Popis a cíle frakce. |
+      * | Členové | Relace | Odkazy na členy frakce v databázi "NPC". |
+      * | Území | Relace | Odkazy na území frakce v databázi "Lokace". |
+      * | Vztahy s jinými frakcemi | Text | Vztahy s jinými frakcemi. |
+      * | Vztah k hráči | Číslo | Reputace hráče u frakce (číselné skóre). |
+      * | Významné události | Relace | Odkazy na události v databázi "Události". |
+      * | Tagy | Více výběrů | Tagy pro kategorizaci. |
+   * 3.8. Události
+      * | Název vlastnosti | Typ Notion | Popis |
+      * | :----------------- | :--------- | :--------------------------------------------------------------------- |
+      * | Název | Název | Název události. |
+      * | Datum a čas | Datum | Datum a čas události. |
+      * | Popis | Text | Popis události. |
+      * | Místo | Relace | Odkaz na lokaci v databázi "Lokace". |
+      * | Zúčastněné postavy | Relace | Odkazy na NPC v databázi "NPC". |
+      * | Důsledky | Text | Důsledky události. |
+      * | Tagy | Více výběrů | Tagy pro kategorizaci. |
+4. Technické aspekty návrhu
+* Diskutují se zde základní technologie a přístupy pro implementaci systému.
+   * 4.1. Zpracování přirozeného jazyka pro extrakci informací
+      * Podrobně se popisuje výběr vhodných NLP knihoven (např. SpaCy 9, NLTK 36, Transformers 37) a předtrénovaných modelů vhodných pro rozpoznávání entit a extrakci atributů v narativním textu. Zvažují se modely jemně doladěné pro specifické domény, pokud jsou k dispozici.
+      * Vysvětluje se proces trénování nebo jemného doladění modelů pro specifickou doménu solo AI RPG her. To by zahrnovalo vytvoření označené datové sady textu hry s anotovanými entitami a jejich atributy.
+      * Diskutují se výzvy spojené s proměnlivostí přirozeného jazyka, včetně slangu, vymyšlených termínů a potenciálních chyb v textu generovaném AI, a strategie pro zmírnění těchto problémů (např. použití robustních NER modelů, implementace mechanismů pro opravu chyb).
+   * 4.2. Propojování entit a extrakce vztahů
+      * Podrobně se popisují techniky propojování identifikovaných entit s existujícími záznamy v Notion. To může zahrnovat přesné porovnávání řetězců, fuzzy matching nebo použití pokročilejších nástrojů pro propojování entit 66, pokud to rozsah a složitost vyžadují.
+      * Diskutují se metody pro extrakci vztahů mezi entitami z textu. To může zahrnovat analýzu struktury vět, syntaktických stromů závislostí 9 nebo použití předtrénovaných modelů pro extrakci vztahů.12
+   * 4.3. Sledování změn stavu entit a historie
+      * Vysvětluje se, jak identifikovat jazykové signály indikující změny stavu entit. To může zahrnovat hledání specifických sloves (např. "zemřel", "stal se", "ztratil") a jejich kontextu ve vztahu k identifikovaným entitám.
+      * Popisuje se implementace mechanismu pro zaznamenávání a ukládání historie změn pro každou entitu v Notion. To může zahrnovat připojování k textové vlastnosti "Historie změn", vytváření propojených záznamů v databázi "Historie" nebo použití strukturovanějšího přístupu ke sledování změn atributů v průběhu času.
+   * 4.4. Strategie integrace s Notion API
+      * Poskytuje se návod k použití klientských knihoven Notion API (např. pro Python nebo JavaScript) pro interakci se službou Notion.
+      * Podrobně se popisují API volání potřebná pro vytváření databází 32, přidávání nových stránek (reprezentujících záznamy v databázi) 145, dotazování na existující stránky 142 a aktualizaci vlastností stránek.20
+      * Diskutuje se o důležitosti správy autentizace API pomocí integračního tokenu 30 a o řešení potenciálních chyb.
+   * 4.5. Techniky automatické kategorizace a tagování
+      * Diskutuje se o použití knihoven a technik textové klasifikace pro automatické přiřazování kategorií a tagů k entitám. Zvažuje se klasifikace s jedním i více štítky v závislosti na požadavcích na tagování.
+      * Vysvětluje se, jak implementovat hierarchickou kategorizaci pro lokace, potenciálně trénováním hierarchického textového klasifikátoru 46 nebo použitím pravidlového systému založeného na názvech lokací a jejich vztazích.
+   * 4.6. Generování časové osy a deníku
+      * Podrobně se popisují potenciální algoritmy pro shrnování textu herní session. Zkoumají se jak extraktivní shrnutí (výběr klíčových vět), tak abstraktivní shrnutí (generování nového textu, který zachycuje podstatu).
+      * Nastíňuje se proces identifikace událostí a jejich časových značek v příběhu. To může zahrnovat hledání specifických klíčových slov nebo použití technik extrakce časových informací.
+      * Doporučují se vhodné nástroje třetích stran pro generování časových os nebo JavaScriptové knihovny, které lze integrovat nebo na ně odkazovat ze systému.
+   * 4.7. Návrh systému questů a reputace
+      * Vysvětluje se, jak modelovat questy v databázi Notion, včetně jejich cílů, stavu, odměn a souvisejících entit.
+      * Diskutuje se o implementaci systému hodnocení reputace, potenciálně pomocí číselného skóre a jeho aktualizace na základě klíčových slov nebo analýzy sentimentu interakcí s frakcemi a NPC.
+5. Specifikace integrace s AI
+* Poskytují se pokyny pro integraci systému s různými AI modely používanými pro solo RPG hry (např. GPT-4, Claude).
+* Diskutuje se o formátu vstupu (text hry) a o tom, jak bude systém tento text přijímat v reálném čase nebo téměř v reálném čase.
+* Řeší se potřeba kontextové povědomí a rozpoznání záměru v textu generovaném AI pro přesnou extrakci informací. To může zahrnovat analýzu dialogových výměn a celkového toku konverzace.
+6. Principy návrhu uživatelského rozhraní a uživatelské zkušenosti (UI/UX)
+* Doporučují se osvědčené postupy pro návrh intuitivního chat rozhraní pro interakci s AI.
+* Navrhují se UI prvky pro vizualizaci aktualizací databáze a poskytování přehledů herního světa.
+* Zdůrazňuje se důležitost uživatelsky přívětivých funkcí pro manuální úpravy a opravy.
+7. Potenciální výzvy a strategie jejich řešení
+* Identifikují se potenciální výzvy při vývoji systému, jako jsou:
+   * Přesnost rozpoznávání entit a extrakce vztahů, zejména u nuancovaného nebo nejednoznačného textu.
+   * Zpracování variability textu generovaného AI a udržení konzistence extrahovaných informací.
+   * Správa limitů rychlosti Notion API a zajištění spolehlivé synchronizace dat.
+   * Návrh uživatelského rozhraní, které je informativní a zároveň snadno použitelné pro složitá data.
+* Navrhují se strategie pro zmírnění každé identifikované výzvy.
+8. Závěr
+* Shrnují se klíčové požadavky a technické aspekty pro vývoj automatizovaného systému pro zaznamenávání a organizaci obsahu solo AI RPG her do Notion.
+* Opakují se potenciální přínosy systému pro zlepšení zážitku ze solo RPG her.
+* Navrhují se potenciální další kroky pro vývojářský tým, jako je vytvoření proof-of-concept pro základní funkce extrakce entit a integrace s Notion.
+Citovaná díla
+1. The Ultimate Guide to Rule-based Entity Recognition with Spark NLP - John Snow Labs, použito dubna 21, 2025, https://www.johnsnowlabs.com/rule-based-entity-recognition-with-spark-nlp/
+2. Fine Tuning Named Entity Extraction Models for the Fantasy Domain - arXiv, použito dubna 21, 2025, https://arxiv.org/pdf/2402.10662
+3. [2402.10662] Fine Tuning Named Entity Extraction Models for the Fantasy Domain - arXiv, použito dubna 21, 2025, https://arxiv.org/abs/2402.10662
+4. Comparative Analysis of Named Entity Recognition in the Dungeons and Dragons Domain, použito dubna 21, 2025, https://www.researchgate.net/publication/377248838_Comparative_Analysis_of_Named_Entity_Recognition_in_the_Dungeons_and_Dragons_Domain
+5. Comparative Analysis of Named Entity Recognition in the Dungeons and Dragons Domain - ACL Anthology, použito dubna 21, 2025, https://aclanthology.org/2023.ranlp-1.130.pdf
+6. Extracting entities with attributes in clinical text via joint deep learning - PMC, použito dubna 21, 2025, https://pmc.ncbi.nlm.nih.gov/articles/PMC7647140/
+7. What is Entity Extraction? - Babel Street, použito dubna 21, 2025, https://www.babelstreet.com/blog/what-is-entity-extraction
+8. Extracting properties and attributes for entities - nlp - Stack Overflow, použito dubna 21, 2025, https://stackoverflow.com/questions/24025546/extracting-properties-and-attributes-for-entities
+9. Entity Attribute Extraction On Unstructured Medical Text - Stack Overflow, použito dubna 21, 2025, https://stackoverflow.com/questions/64192586/entity-attribute-extraction-on-unstructured-medical-text
+10. Evaluating named entity recognition tools for extracting social networks from novels - PMC, použito dubna 21, 2025, https://pmc.ncbi.nlm.nih.gov/articles/PMC7924459/
+11. Information Extraction in NLP | GeeksforGeeks, použito dubna 21, 2025, https://www.geeksforgeeks.org/information-extraction-in-nlp/
+12. Open and Targeted Relationship Extraction - Babel Street, použito dubna 21, 2025, https://www.babelstreet.com/blog/understanding-the-difference-between-open-and-targeted-relationship-extraction
+13. Relationship Extraction in NLP - GeeksforGeeks, použito dubna 21, 2025, https://www.geeksforgeeks.org/relationship-extraction-in-nlp/
+14. Change Tracking - EF Core | Microsoft Learn, použito dubna 21, 2025, https://learn.microsoft.com/en-us/ef/core/change-tracking/
+15. Entity Tracking in Language Models - ResearchGate, použito dubna 21, 2025, https://www.researchgate.net/publication/372917543_Entity_Tracking_in_Language_Models
+16. Entity Tracking in Language Models - ACL Anthology, použito dubna 21, 2025, https://aclanthology.org/2023.acl-long.213/
+17. Effective Use of Transformer Networks for Entity Tracking - Texas Computer Science, použito dubna 21, 2025, https://www.cs.utexas.edu/~gdurrett/papers/gupta-durrett-emnlp2019.pdf
+18. Entity Tracking in Language Models - ACL Anthology, použito dubna 21, 2025, https://aclanthology.org/2023.acl-long.213.pdf
+19. Modifying Notion database entries with API: How to update field values?, použito dubna 21, 2025, https://community.latenode.com/t/modifying-notion-database-entries-with-api-how-to-update-field-values/8998
+20. Update database properties - Notion API, použito dubna 21, 2025, https://developers.notion.com/reference/update-property-schema-object
+21. Update a database - Notion API, použito dubna 21, 2025, https://developers.notion.com/reference/update-a-database
+22. Implementing a Database Versioning System - Redgate Software, použito dubna 21, 2025, https://www.red-gate.com/hub/product-learning/flyway/implementing-a-database-versioning-system
+23. Data Versioning Explained: Guide, Examples & Best Practices - lakeFS, použito dubna 21, 2025, https://lakefs.io/blog/data-versioning/
+24. how best to have a record versioning or tracking in relational database?, použito dubna 21, 2025, https://dba.stackexchange.com/questions/337453/how-best-to-have-a-record-versioning-or-tracking-in-relational-database
+25. So you want Database Versioning? | DoltHub Blog, použito dubna 21, 2025, https://www.dolthub.com/blog/2022-08-04-database-versioning/
+26. How to efficiently version records in an SQL database - Stack Overflow, použito dubna 21, 2025, https://stackoverflow.com/questions/21383701/how-to-efficiently-version-records-in-an-sql-database
+27. Version controlling a database's contents - Software Engineering Stack Exchange, použito dubna 21, 2025, https://softwareengineering.stackexchange.com/questions/280203/version-controlling-a-databases-contents
+28. How to version control a record in a database [closed] - Stack Overflow, použito dubna 21, 2025, https://stackoverflow.com/questions/323065/how-to-version-control-a-record-in-a-database
+29. Build your first integration - Notion API, použito dubna 21, 2025, https://developers.notion.com/docs/create-a-notion-integration
+30. Notion API Essential Guide - Rollout, použito dubna 21, 2025, https://rollout.com/integration-guides/notion/api-essentials
+31. Working with databases - Notion API, použito dubna 21, 2025, https://developers.notion.com/docs/working-with-databases
+32. Create a database - Notion API, použito dubna 21, 2025, https://developers.notion.com/reference/create-a-database
+33. Notion Databases: The Ultimate Beginner's Guide - Thomas Frank, použito dubna 21, 2025, https://thomasjfrank.com/notion-databases-the-ultimate-beginners-guide/
+34. Keyword Extraction Methods in NLP | GeeksforGeeks, použito dubna 21, 2025, https://www.geeksforgeeks.org/keyword-extraction-methods-in-nlp/
+35. The Expert's Guide to Keyword Extraction from Texts with Python and Spark NLP, použito dubna 21, 2025, https://www.johnsnowlabs.com/the-experts-guide-to-keyword-extraction-from-texts-with-spark-nlp-and-python/
+36. Keyword Extraction with NLP: A Beginner's Guide | Andy Fitzgerald Consulting, použito dubna 21, 2025, https://www.andyfitzgeraldconsulting.com/insights/keyword-extraction-nlp/
+37. 5. Project 4: Keyword Extraction from Text - YouTube, použito dubna 21, 2025, https://www.youtube.com/watch?v=xHLuQJ1VZwE
+38. www.kaggle.com, použito dubna 21, 2025, https://www.kaggle.com/code/heeraldedhia/text-classification-nlp#:~:text=Text%20classification%20also%20known%20as,categories%20based%20on%20its%20content.
+39. Transform your business with automated text classification - Pangeanic Blog, použito dubna 21, 2025, https://blog.pangeanic.com/rule-based-methods-for-text-classification-in-nlp
+40. Text Classification (NLP) - Kaggle, použito dubna 21, 2025, https://www.kaggle.com/code/heeraldedhia/text-classification-nlp
+41. (PDF) Automatic Text Classification: A Technical Review - ResearchGate, použito dubna 21, 2025, https://www.researchgate.net/publication/266296879_Automatic_Text_Classification_A_Technical_Review
+42. Text Classification: What It Is & How to Get Started - Levity.ai, použito dubna 21, 2025, https://levity.ai/blog/text-classification
+43. Text Classification using scikit-learn in NLP - GeeksforGeeks, použito dubna 21, 2025, https://www.geeksforgeeks.org/text-classification-using-scikit-learn-in-nlp/
+44. Mastering Text Classification with Spark NLP - John Snow Labs, použito dubna 21, 2025, https://www.johnsnowlabs.com/mastering-text-classification-with-spark-nlp/
+45. Understanding Text Classification in Python | DataCamp, použito dubna 21, 2025, https://www.datacamp.com/tutorial/text-classification-python
+46. www.mdpi.com, použito dubna 21, 2025, https://www.mdpi.com/2079-9292/13/7/1199#:~:text=What%20Is%20Hierarchical%20Text%20Classification,may%20have%20many%20possible%20children.
+47. Hierarchical Text Classification: A Review Of Current Research, použito dubna 21, 2025, https://pric.unive.it/fileadmin/user_upload/Spoke_6_iNEST/doc/evento15gen2024/GIUDICE_Spoke6_Jan24.pdf
+48. [2403.00165] TELEClass: Taxonomy Enrichment and LLM-Enhanced Hierarchical Text Classification with Minimal Supervision - arXiv, použito dubna 21, 2025, https://arxiv.org/abs/2403.00165
+49. HiGen: Hierarchy-Aware Sequence Generation for Hierarchical Text Classification - arXiv, použito dubna 21, 2025, https://arxiv.org/abs/2402.01696
+50. Hierarchical Text Classification and Its Foundations: A Review of Current Research - MDPI, použito dubna 21, 2025, https://www.mdpi.com/2079-9292/13/7/1199
+51. Hierarchical Text Classification - A-Team Chronicles, použito dubna 21, 2025, https://www.ateam-oracle.com/post/hierarchical-text-classification
+52. Search for hierarchical text classification | Papers With Code, použito dubna 21, 2025, https://paperswithcode.com/search?q=hierarchical%20text%20classification
+53. Label Augmentation for Zero-Shot Hierarchical Text Classification - ACL Anthology, použito dubna 21, 2025, https://aclanthology.org/2024.acl-long.416.pdf
+54. Towards Better Hierarchical Text Classification with Data Generation - ACL Anthology, použito dubna 21, 2025, https://aclanthology.org/2023.findings-acl.489/
+55. Hierarchical text classification - Kaggle, použito dubna 21, 2025, https://www.kaggle.com/datasets/kashnitsky/hierarchical-text-classification
+56. How can sentiment analysis be used to improve customer experience? - IBM, použito dubna 21, 2025, https://www.ibm.com/think/insights/how-can-sentiment-analysis-be-used-to-improve-customer-experience
+57. How to Implement Real-Time Sentiment Tracking in Your Contact Center - Insight7, použito dubna 21, 2025, https://insight7.io/how-to-implement-real-time-sentiment-tracking-in-your-contact-center/
+58. 13 Best Sentiment Analysis Tools (Options + Pricing) - OpenPhone Blog, použito dubna 21, 2025, https://www.openphone.com/blog/sentiment-analysis-tools/
+59. The Science of Customer Emotions: Advances in Sentiment Analysis - CMS Wire, použito dubna 21, 2025, https://www.cmswire.com/customer-experience/customer-sentiment-analysis-reading-emotions-redefining-relationships/
+60. What is Sentiment Analysis? - AWS, použito dubna 21, 2025, https://aws.amazon.com/what-is/sentiment-analysis/
+61. 19 Best Sentiment Analysis Tools in 2025 - Kapiche, použito dubna 21, 2025, https://www.kapiche.com/blog/best-sentiment-analysis-tools
+62. Exploring Sentiment Analysis: A Complete Guide for Businesses - Storyful, použito dubna 21, 2025, https://storyful.com/blog/intelligence/exploring-sentiment-analysis/
+63. Advanced Sentiment Analysis with LLMs & Graphs - SearchUnify, použito dubna 21, 2025, https://www.searchunify.com/sudo-technical-blogs/decoding-customer-sentiment-a-deep-dive-into-advanced-sentiment-analysis-with-llms-and-graphs/
+64. Sentiment Analysis Guide - Talkwalker, použito dubna 21, 2025, https://www.talkwalker.com/blog/sentiment-analysis-guide
+65. Tools Available for Review Analysis and Sentiment Tracking - Rocket Clicks, použito dubna 21, 2025, https://rocketclicks.com/client-education/tools-available-for-review-analysis-and-sentiment-tracking/
+66. Entity linking - Wikipedia, použito dubna 21, 2025, https://en.wikipedia.org/wiki/Entity_linking
+67. What is entity linking in Azure AI Language? - Learn Microsoft, použito dubna 21, 2025, https://learn.microsoft.com/en-us/azure/ai-services/language-service/entity-linking/overview
+68. Entity Linking - NLP-progress, použito dubna 21, 2025, http://nlpprogress.com/english/entity_linking.html
+69. Common English Entity Linking: Linking Text to Knowledge Quickly and Efficiently | Ontotext, použito dubna 21, 2025, https://www.ontotext.com/blog/common-english-entity-linking-linking-text-to-knowledge-fast-and-efficient/
+70. What is Entity Linking | Ontotext Fundamentals, použito dubna 21, 2025, https://www.ontotext.com/knowledgehub/fundamentals/what-is-entity-linking/
+71. Entity Linking - CoreNLP - Stanford NLP Group, použito dubna 21, 2025, https://stanfordnlp.github.io/CoreNLP/entitylink.html
+72. Improving “entity linking” between texts and knowledge bases - Amazon Science, použito dubna 21, 2025, https://www.amazon.science/blog/improving-entity-linking-between-texts-and-knowledge-bases
+73. Improving biomedical entity linking for complex entity mentions with LLM-based text simplification - PMC, použito dubna 21, 2025, https://pmc.ncbi.nlm.nih.gov/articles/PMC11281847/
+74. Entity Extraction and Linking | Stardog Documentation Latest, použito dubna 21, 2025, https://docs.stardog.com/tutorials/entity-extraction-and-linking
+75. Entity Linking | Papers With Code, použito dubna 21, 2025, https://paperswithcode.com/task/entity-linking
+76. Automatic summarization - Wikipedia, použito dubna 21, 2025, https://en.wikipedia.org/wiki/Automatic_summarization
+77. Importance & Benefits of Auto Text Summarization - Nowigence, použito dubna 21, 2025, https://nowigence.com/importance-benefits-of-auto-text-summarization/
+78. What is summarization? - Azure AI services | Microsoft Learn, použito dubna 21, 2025, https://learn.microsoft.com/en-us/azure/ai-services/language-service/summarization/overview
+79. Automatic Text Summarization (Cognitive Science and Knowledge Management), použito dubna 21, 2025, https://www.amazon.com/Automatic-Summarization-Cognitive-Knowledge-Management/dp/1848216688
+80. Techniques for automatic summarization of documents using language models - AWS, použito dubna 21, 2025, https://aws.amazon.com/blogs/machine-learning/techniques-for-automatic-summarization-of-documents-using-language-models/
+81. Deep Learning techniques for Automatic Text Summarization - Marvik - Blog, použito dubna 21, 2025, https://blog.marvik.ai/2022/12/19/deep-learning-techniques-for-automatic-text-summarization/
+82. Two-step Text Summarization for Long-form Biographical Narrative Genre - ACL Anthology, použito dubna 21, 2025, https://aclanthology.org/2023.codi-1.20.pdf
+83. Automated Text Summarization: A Review and Recommendations - Mitre, použito dubna 21, 2025, https://www.mitre.org/news-insights/publication/automated-text-summarization-review-and-recommendations
+84. Automatic text summarization - Masa Nekic - YouTube, použito dubna 21, 2025, https://m.youtube.com/watch?v=_d0OXm0dRZ4
+85. A systematic review of automatic text summarization for biomedical literature and EHRs, použito dubna 21, 2025, https://pmc.ncbi.nlm.nih.gov/articles/PMC8449627/
+86. Free AI Timeline Creator | Online Timeline Maker - MyLens AI, použito dubna 21, 2025, https://mylens.ai/ai-timeline/
+87. Free AI Timeline Infographic Generator—Piktochart AI, použito dubna 21, 2025, https://piktochart.com/ai-timeline-generator/
+88. Free AI Timeline Generator: Turn your milestones into inspirational stories! - Venngage, použito dubna 21, 2025, https://venngage.com/ai-tools/timeline-generator
+89. Timeline, použito dubna 21, 2025, https://timeline.knightlab.com/
+90. Timeline | Read Write Think - ReadWriteThink.org, použito dubna 21, 2025, https://www.readwritethink.org/classroom-resources/student-interactives/timeline
+91. Create a timeline - Microsoft Support, použito dubna 21, 2025, https://support.microsoft.com/en-us/office/create-a-timeline-9c4448a9-99c7-4b0e-8eff-0dcf535f223c
+92. Event Timeline Generation from History Textbooks - ACL Anthology, použito dubna 21, 2025, https://aclanthology.org/W17-5912/
+93. Systems and method for generating event timelines using human language technology, použito dubna 21, 2025, https://www.mitre.org/our-impact/intellectual-property/systems-and-method-generating-event-timelines-using-human-language
+94. sayantan11995/Event-Timeline-Generation-from-Documents: Code and Dataset for our ECML-PKDD paper - GitHub, použito dubna 21, 2025, https://github.com/sayantan11995/Event-Timeline-Generation-from-Documents
+95. Create Interactive Timelines | College of Arts & Sciences - UNC Greensboro, použito dubna 21, 2025, https://cas.uncg.edu/create-interactive-timelines/
+96. Tiki-Toki: Online Timeline Maker | Make a timeline for free, použito dubna 21, 2025, https://www.tiki-toki.com/
+97. How to create a spectacular and interactive timeline fast and for free! | Genially Blog, použito dubna 21, 2025, https://blog.genially.com/en/interactive-timeline/
+98. 11 Best Timeline Software for Creating Interactive Timelines - iSpring, použito dubna 21, 2025, https://www.ispringsolutions.com/blog/top-10-free-and-paid-interactive-timeline-makers
+99. How to Create an Interactive Timeline | ThingLink Blog, použito dubna 21, 2025, https://www.thinglink.com/blog/how-to-create-an-interactive-timeline/
+100. Free online timeline maker, použito dubna 21, 2025, https://time.graphics/
+101. Could someone point me to a really good timeline builder? : r/history - Reddit, použito dubna 21, 2025, https://www.reddit.com/r/history/comments/9hftyr/could_someone_point_me_to_a_really_good_timeline/
+102. Creating a timeline visual with milestones - Microsoft Fabric Community, použito dubna 21, 2025, https://community.fabric.microsoft.com/t5/Desktop/Creating-a-timeline-visual-with-milestones/m-p/371537
+103. QuestTracker/README.md at main - GitHub, použito dubna 21, 2025, https://github.com/boli32/QuestTracker/blob/main/README.md
+104. This is how I'm tracking quest progress in my custom game engine. Opinions wanted! : r/gamedev - Reddit, použito dubna 21, 2025, https://www.reddit.com/r/gamedev/comments/2toytm/this_is_how_im_tracking_quest_progress_in_my/
+105. e-ucm/unity-tracker: Unity gleaner tracker that uses csharp-tracker - GitHub, použito dubna 21, 2025, https://github.com/e-ucm/unity-tracker
+106. How quests actually work? : r/GameDevelopment - Reddit, použito dubna 21, 2025, https://www.reddit.com/r/GameDevelopment/comments/1egne2k/how_quests_actually_work/
+107. How create a Quest System in Unity | RPG Style | Including Data Persistence - YouTube, použito dubna 21, 2025, https://www.youtube.com/watch?v=UyTJLDGcT64
+108. Quest System In-Game! - Scripting Support - Developer Forum | Roblox, použito dubna 21, 2025, https://devforum.roblox.com/t/quest-system-in-game/351015
+109. Tracking kills for Quests? - Ask - GameDev.tv, použito dubna 21, 2025, https://community.gamedev.tv/t/tracking-kills-for-quests/194127
+110. Help With A Quest Tracking Mod Idea! - Daggerfall Workshop Forums, použito dubna 21, 2025, https://forums.dfworkshop.net/viewtopic.php?t=6324
+111. Implementing Story and Quests in RPG - Game Development Stack Exchange, použito dubna 21, 2025, https://gamedev.stackexchange.com/questions/126036/implementing-story-and-quests-in-rpg
+112. Testing and performance analysis | Meta Horizon OS Developers, použito dubna 21, 2025, https://developers.meta.com/horizon/documentation/unity/unity-perf/
+113. 7 Proven Techniques to Prioritize Quests for Casual Gamers in Open Worlds - Alleo.ai, použito dubna 21, 2025, https://alleo.ai/blog/fitness-enthusiasts/time-management/how-to-prioritize-quests-for-casual-gamers-exploring-open-worlds/
+114. Data Used for In-Game Rewards - Discord Support, použito dubna 21, 2025, https://support.discord.com/hc/en-us/articles/22225542459415-Data-Used-for-In-Game-Rewards
+115. Quest system - Unity Documentation, použito dubna 21, 2025, https://docs.unity.com/ugs/manual/cloud-code/manual/modules/use-cases/quest-system
+116. Quests and Rewards | Spatial Creator Toolkit, použito dubna 21, 2025, https://toolkit.spatial.io/docs/economy/quests-and-rewards
+117. Daily Quests - Gaming Glossary - Lark, použito dubna 21, 2025, https://www.larksuite.com/en_us/topics/gaming-glossary/daily-quests
+118. Help/suggestion to create a Quest System : r/gamedev - Reddit, použito dubna 21, 2025, https://www.reddit.com/r/gamedev/comments/ss66tr/helpsuggestion_to_create_a_quest_system/
+119. What system do you use to organize a bunch of quests for an RPG? : r/gamedesign - Reddit, použito dubna 21, 2025, https://www.reddit.com/r/gamedesign/comments/oosb0v/what_system_do_you_use_to_organize_a_bunch_of/
+120. Ways to accomplish a clean and manageable quest system? - Developer Forum | Roblox, použito dubna 21, 2025, https://devforum.roblox.com/t/ways-to-accomplish-a-clean-and-manageable-quest-system/401541
+121. Storing quests for an online RPG in a MySQL database, použito dubna 21, 2025, https://gamedev.stackexchange.com/questions/142714/storing-quests-for-an-online-rpg-in-a-mysql-database
+122. Quests Overview | Decentraland Documentation, použito dubna 21, 2025, https://docs.decentraland.org/creator/quests/overview/
+123. How to store Goals (think RPG Quest) in SQL - Stack Overflow, použito dubna 21, 2025, https://stackoverflow.com/questions/3672206/how-to-store-goals-think-rpg-quest-in-sql
+124. Quest Generation - Domain outside of quest giver scene - Pixel Crushers Forum, použito dubna 21, 2025, https://www.pixelcrushers.com/phpbb/viewtopic.php?t=8424
+125. How to implement Missions/Quests into a game (C++)? : r/gamedev - Reddit, použito dubna 21, 2025, https://www.reddit.com/r/gamedev/comments/6h5npm/how_to_implement_missionsquests_into_a_game_c/
+126. Entity Relationship Diagram (The Quest Continues) - Epicor User Help Forum, použito dubna 21, 2025, https://www.epiusers.help/t/entity-relationship-diagram-the-quest-continues/3158
+127. Branching quest system - Game Development Stack Exchange, použito dubna 21, 2025, https://gamedev.stackexchange.com/questions/101943/branching-quest-system
+128. How to create a new Quest Link Tracking database (4248732), použito dubna 21, 2025, https://support.quest.com/zh-cn/migrator-for-notes-to-sharepoint/kb/334106/how-to-create-a-new-quest-link-tracking-database
+129. Creating database on sql server for entities - Toad World® Forums, použito dubna 21, 2025, https://forums.toadworld.com/t/creating-database-on-sql-server-for-entities/53235
+130. How to structure the data for a quest or mission system? : r/gamedev - Reddit, použito dubna 21, 2025, https://www.reddit.com/r/gamedev/comments/9r64zz/how_to_structure_the_data_for_a_quest_or_mission/
+131. Reputation and Social Value Tracking : r/RPGdesign - Reddit, použito dubna 21, 2025, https://www.reddit.com/r/RPGdesign/comments/41iv92/reputation_and_social_value_tracking/
+132. Dynamic Trackers - Overview, použito dubna 21, 2025, https://docs.gamesight.io/docs/dynamic-trackers
+133. Programmatic Advertising Solutions - Game Marketing Genie, použito dubna 21, 2025, https://www.gamemarketinggenie.com/programmatic-advertising
+134. How do you track the PCs' reputation? - RPG Stack Exchange, použito dubna 21, 2025, https://rpg.stackexchange.com/questions/6726/how-do-you-track-the-pcs-reputation
+135. how can I track an online games result - Stack Overflow, použito dubna 21, 2025, https://stackoverflow.com/questions/29107808/how-can-i-track-an-online-games-result
+136. What is a good system for tracking reputation between factions? : r/DnD - Reddit, použito dubna 21, 2025, https://www.reddit.com/r/DnD/comments/13dshtk/what_is_a_good_system_for_tracking_reputation/
+137. New D&D & PF2e Reputation and Faction Favor System - The DM Lair, použito dubna 21, 2025, https://thedmlair.com/blogs/news/new-d-d-pf2e-reputation-and-faction-favor-system
+138. C++ Qt - Check if a steam game is running or not programmatically - Stack Overflow, použito dubna 21, 2025, https://stackoverflow.com/questions/48136859/c-qt-check-if-a-steam-game-is-running-or-not-programmatically
+139. Reputation Tracker - LoTROInterface, použito dubna 21, 2025, https://www.lotrointerface.com/forums/showthread.php?t=1608
+140. Feature Story: The Reluctant Record Chasers - Princeton University Athletics, použito dubna 21, 2025, https://goprincetontigers.com/news/2025/4/16/mens-lacrosse-feature-story-the-reluctant-record-chasers
+141. Introduction - Notion API, použito dubna 21, 2025, https://developers.notion.com/reference/intro
+142. The Complete Notion API Crash Course for Beginners - Thomas Frank, použito dubna 21, 2025, https://thomasjfrank.com/notion-api-crash-course/
+143. How to update database Item using the Notion API - Stack Overflow, použito dubna 21, 2025, https://stackoverflow.com/questions/71698638/how-to-update-database-item-using-the-notion-api
+144. How to update or create entry in Notion database - Need help - Activepieces Community, použito dubna 21, 2025, https://community.activepieces.com/t/how-to-update-or-create-entry-in-notion-database/3836
+145. How to insert data in database via Notion API? - Stack Overflow, použito dubna 21, 2025, https://stackoverflow.com/questions/69150120/how-to-insert-data-in-database-via-notion-api
+146. Is it possible to add new rows into database using notion api? - Reddit, použito dubna 21, 2025, https://www.reddit.com/r/Notion/comments/p5vyft/is_it_possible_to_add_new_rows_into_database/
+147. Adding a new property to an existing database using the API : r/Notion - Reddit, použito dubna 21, 2025, https://www.reddit.com/r/Notion/comments/ri52e4/adding_a_new_property_to_an_existing_database/
+148. “Rate limit reached” error – Notion Help Center, použito dubna 21, 2025, https://www.notion.com/help/rate-limit-reached
+149. Request limits - Notion API, použito dubna 21, 2025, https://developers.notion.com/reference/request-limits
+150. Search optimizations and limitations - Notion API, použito dubna 21, 2025, https://developers.notion.com/reference/search-optimizations-and-limitations
+151. Frequently asked questions - Notion API, použito dubna 21, 2025, https://developers.notion.com/page/frequently-asked-questions
+152. How do you handle Request limits using Notion API? - Reddit, použito dubna 21, 2025, https://www.reddit.com/r/Notion/comments/xfufed/how_do_you_handle_request_limits_using_notion_api/
+153. Guide to Notion API: Comprehensive Developer Guide - Devzery, použito dubna 21, 2025, https://www.devzery.com/post/notion-api
+154. Notion API is causing headaches - has anyone integrated Notion with their own app/website? - Reddit, použito dubna 21, 2025, https://www.reddit.com/r/Notion/comments/1dmolwx/notion_api_is_causing_headaches_has_anyone/
+155. 429 Rate limited - Notion - Make.com - YouTube, použito dubna 21, 2025, https://www.youtube.com/watch?v=_MbTxDJd3sY
+156. Extract and Categorize NLP Pipeline - Kaggle, použito dubna 21, 2025, https://www.kaggle.com/code/amansherjadakhan/extract-and-categorize-nlp-pipeline
+157. 7 NLP Techniques for Extracting Information from Unstructured Text using Algorithms, použito dubna 21, 2025, https://www.width.ai/post/extracting-information-from-unstructured-text-using-algorithms
+158. Entity Extraction with spaCy - Sematext, použito dubna 21, 2025, https://sematext.com/blog/entity-extraction-with-spacy/
+159. What is Named Entity Recognition (NER)? Methods, Use Cases, and Challenges, použito dubna 21, 2025, https://www.datacamp.com/blog/what-is-named-entity-recognition-ner
+160. A Comprehensive Guide to Named Entity Recognition (NER) - Turing, použito dubna 21, 2025, https://www.turing.com/kb/a-comprehensive-guide-to-named-entity-recognition
+161. Keyword Extraction and NER Tagging spaCy - Kaggle, použito dubna 21, 2025, https://www.kaggle.com/code/hanifalirsyad/keyword-extraction-and-ner-tagging-spacy
+162. 7. Extracting Information from Text - NLTK, použito dubna 21, 2025, https://www.nltk.org/book/ch07.html
+163. A survey on different dimensions for graphical keyword extraction techniques: Issues and Challenges - PubMed Central, použito dubna 21, 2025, https://pmc.ncbi.nlm.nih.gov/articles/PMC8062621/
+164. Text classification - Hugging Face, použito dubna 21, 2025, https://huggingface.co/docs/transformers/tasks/sequence_classification
+165. Relationship Extraction - NLP-progress, použito dubna 21, 2025, http://nlpprogress.com/english/relationship_extraction.html
+166. Relation Extraction with Llama3 Models - Towards Data Science, použito dubna 21, 2025, https://towardsdatascience.com/relation-extraction-with-llama3-models-f8bc41858b9e/
+167. Relation Extraction | Papers With Code, použito dubna 21, 2025, https://paperswithcode.com/task/relation-extraction
+168. Relation Extraction - DeepDive - Stanford University, použito dubna 21, 2025, http://deepdive.stanford.edu/relation_extraction
+169. [2305.05003] Revisiting Relation Extraction in the era of Large Language Models - arXiv, použito dubna 21, 2025, https://arxiv.org/abs/2305.05003
+170. Entity and relation extraction fine-tuning - API - OpenAI Developer Community, použito dubna 21, 2025, https://community.openai.com/t/entity-and-relation-extraction-fine-tuning/35464
+171. Implementing a custom trainable component for relation extraction - Explosion AI, použito dubna 21, 2025, https://explosion.ai/blog/relation-extraction
+172. Relationship extraction : r/LanguageTechnology - Reddit, použito dubna 21, 2025, https://www.reddit.com/r/LanguageTechnology/comments/nvuwiw/relationship_extraction/

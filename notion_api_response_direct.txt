@@ -1,0 +1,3 @@
+Testuji připojení k Notion API...
+Status kód: 200
+{"object":"user","id":"64fec7c5-d8ed-4b4c-bbef-54bcaf51863e","name":"RPG Tracker","avatar_url":null,"type":"bot","bot":{"owner":{"type":"workspace","workspace":true},"workspace_name":"Petr Čermák's Notion"},"request_id":"3b4cef34-0994-4a77-b08f-3c68bf49627f"}

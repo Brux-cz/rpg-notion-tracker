@@ -1,0 +1,24 @@
+Testuji připojení k Notion API...
+Status kód: 200
+Připojení k Notion API je funkční!
+Přihlášený uživatel: RPG Tracker
+ID uživatele: 64fec7c5-d8ed-4b4c-bbef-54bcaf51863e
+
+Kompletní odpověď:
+{
+  "object": "user",
+  "id": "64fec7c5-d8ed-4b4c-bbef-54bcaf51863e",
+  "name": "RPG Tracker",
+  "avatar_url": null,
+  "type": "bot",
+  "bot": {
+    "owner": {
+      "type": "workspace",
+      "workspace": true
+    },
+    "workspace_name": "Petr Čermák's Notion"
+  },
+  "request_id": "b22cc23a-be5a-4d23-949b-e8f90b41bb6b"
+}
+
+Odpověď uložena do souboru notion_api_response_file.json

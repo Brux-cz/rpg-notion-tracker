@@ -1,0 +1,8 @@
+=== Test vytvoření stránky v Notion API ===
+
+Data pro vytvoření stránky:
+{"parent": {"page_id": "1dcbaf6cb5c180b8aeb5c8cee78379b1"}, "properties": {"title": {"title": [{"text": {"content": "Testovac\u00ed str\u00e1nka z Python skriptu"}}]}}, "children": [{"object": "block", "type": "paragraph", "paragraph": {"rich_text": [{"type": "text", "text": {"content": "Toto je testovac\u00ed str\u00e1nka vytvo\u0159en\u00e1 pomoc\u00ed Notion API."}}]}}, {"object": "block", "type": "paragraph", "paragraph": {"rich_text": [{"type": "text", "text": {"content": "Test byl proveden: 21.04.2025 22:49:01"}}]}}]}
+
+Odesílám požadavek na vytvoření stránky...
+Status kód: 200
+Odpověď: {"object":"page","id":"1dcbaf6c-b5c1-81d5-9d4a-eab3615fdf79","created_time":"2025-04-21T20:49:00.000Z","last_edited_time":"2025-04-21T20:49:00.000Z","created_by":{"object":"user","id":"64fec7c5-d8ed-4b4c-bbef-54bcaf51863e"},"last_edited_by":{"object":"user","id":"64fec7c5-d8ed-4b4c-bbef-54bcaf51863e"},"cover":null,"icon":null,"parent":{"type":"page_id","page_id":"1dcbaf6c-b5c1-80b8-aeb5-c8cee78379b1"},"archived":false,"in_trash":false,"properties":{"title":{"id":"title","type":"title","title":[{"type":"text","text":{"content":"Testovací stránka z Python skriptu","link":null},"annotations":{"bold":false,"italic":false,"strikethrough":false,"underline":false,"code":false,"color":"default"},"plain_text":"Testovací stránka z Python skriptu","href":null}]}},"url":"https://www.notion.so/Testovac-str-nka-z-Python-skriptu-1dcbaf6cb5c181d59d4aeab3615fdf79","public_url":null,"request_id":"6a1c150e-2656-4900-b1ac-1c3f80d0a192"}
